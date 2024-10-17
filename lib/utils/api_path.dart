@@ -30,4 +30,5 @@ class APIpath {
   static const String getAllUser = '/api/admin/users';
   static const String getAllOrder = '/api/admin/orders';
   static const String verifyUser = '/api/admin/verifyuser';
+  static const String updateMerchLocation = '/api/merchant/updateLocation';
 }

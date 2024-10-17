@@ -22,6 +22,28 @@ class MerchantService with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateLocation({required String latitude, required String longitude, required String token, required String id}) async {
+    try {
+      Response response = await apiService.postApi(
+        path: APIpath.updateMerchLocation,
+        headers: {'Authorization': 'Bearer $token'},
+        data: {
+          "latitude": latitude,
+          "longitude": longitude,
+          "orderID": id
+        },
+      );
+      if (response.statusCode == 200) {
+        printLog(response.data);
+        notifyListeners();
+      } else {
+        printLog('Gagal, code: ${response.data}');
+      }
+    } catch (e) {
+      printLog(e);
+    }
+  }
+
   Future<void> searchNearbyMerchant({
     required String token,
     required String lat,

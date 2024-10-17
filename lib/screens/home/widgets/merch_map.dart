@@ -1,3 +1,4 @@
+import 'package:coffeonline/screens/home-merchant/provider/merchant_service.dart';
 import 'package:coffeonline/screens/login/provider/auth_service.dart';
 import 'package:coffeonline/utils/print_log.dart';
 import 'package:coffeonline/utils/socket/socket_service.dart';
@@ -74,6 +75,7 @@ class _MapScreenState extends State<MerchMap> {
   Future<void> _updateRoute() async {
     final authProv = Provider.of<AuthService>(context, listen: false);
     final socketProv = Provider.of<SocketServices>(context, listen: false);
+    final merchProv = Provider.of<MerchantService>(context, listen: false);
   LocationSettings locationSettings = const LocationSettings(
     accuracy: LocationAccuracy.high,
     distanceFilter: 100, // in meters
@@ -82,12 +84,14 @@ class _MapScreenState extends State<MerchMap> {
   Geolocator.getPositionStream(locationSettings: locationSettings).listen((Position position) {
     if(authProv.userData?.merchId == widget.merchantID){
       printLog("check loc");
+      merchProv.updateLocation(latitude: position.latitude.toString(), longitude: position.longitude.toString(), token: authProv.token, id: widget.orderID.toString());
       socketProv.socket.emit('update-location-' + widget.orderID.toString(), {
         'userId': authProv.userId,
         'latitude': position.latitude,
         'longitude': position.longitude,
         'orderId': widget.orderID.toString()
       });
+      printLog("sent location update-location-" + widget.orderID.toString());
     }
   });
 
