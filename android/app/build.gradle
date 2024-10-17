@@ -25,6 +25,7 @@ if (flutterVersionName == null) {
 }
 
 android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
     namespace = "com.example.coffeonline"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
@@ -48,6 +49,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
+        targetSdkVersion rootProject.ext.targetSdkVersion
     }
 
     buildTypes {

@@ -1,13 +1,21 @@
 buildscript {
     ext.kotlin_version = '1.8.22'
+    ext {
+       compileSdkVersion   = 33                // or higher / as desired
+       targetSdkVersion    = 33                // or higher / as desired
+   }
     repositories {
         google()
         mavenCentral()
+        maven {
+        url 'https://jitpack.io'
+        }
     }
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath("com.google.gms:google-services:4.4.0")  
+        classpath 'com.android.tools.build:gradle:8.7.0'
     }
 }
 

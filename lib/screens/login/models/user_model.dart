@@ -7,6 +7,7 @@ class UserDataModel {
   final String phoneNumber;
   final String? token;
   final String type;
+  final bool verified;
   final int? merchId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -20,6 +21,7 @@ class UserDataModel {
     required this.phoneNumber,
     this.token,
     required this.type,
+    required this.verified,
     this.merchId,
     required this.createdAt,
     required this.updatedAt,
@@ -35,6 +37,7 @@ class UserDataModel {
       phoneNumber: json['phone_number'],
       token: json['token'],
       type: json['type'],
+      verified: json['verified'],
       merchId: json['merchantId'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
@@ -51,6 +54,7 @@ class UserDataModel {
       'phone_number': phoneNumber,
       'token': token,
       'type': type,
+      'verified': verified,
       'merchantId': merchId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),

@@ -1,7 +1,10 @@
 import 'package:coffeonline/screens/orders/models/ongoing_model.dart';
+import 'package:coffeonline/utils/print_log.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:coffeonline/utils/socket/socket_service.dart';
 
 import 'widgets/check_order.dart';
 
@@ -57,6 +60,33 @@ class _MapScreenState extends State<MapScreen> {
     _getRoute();
   }
 
+  
+  void acceptMerchUpdate() {
+    final socketProv = Provider.of<SocketServices>(context, listen: false);
+  
+    socketProv.socket.on('update-location-${widget.ongoingData.id}', (data) {
+      printLog(data);
+      if (mounted) {
+        setState(() {
+          merchLoc = LatLng(
+            data['latitude'],
+            data['longitude'],
+          );
+          _markers.removeWhere((marker) => marker.markerId == const MarkerId("Lokasi Penjual"));
+          _markers.add(
+            Marker(
+              markerId: const MarkerId("Lokasi Penjual"),
+              position: merchLoc!,
+              infoWindow: InfoWindow(title: widget.ongoingData.merchant.user.name),
+              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+            ),
+          );
+        });
+        _getRoute();
+      }
+    });
+  }
+
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
   }
@@ -106,6 +136,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    acceptMerchUpdate();
     return Scaffold(
       appBar: AppBar(
         title: Text(

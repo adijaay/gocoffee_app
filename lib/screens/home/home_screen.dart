@@ -11,6 +11,7 @@ import 'widgets/header_user.dart';
 import 'widgets/main_search_coffe.dart';
 import 'widgets/menu_container.dart';
 import 'widgets/merch_menu.dart';
+import 'widgets/admin_menu.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -109,6 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
             const HeaderUserAccount(),
             if (authProv.userData != null &&
                 authProv.userData!.type == 'merchant') ...[MerchMenu()],
+            if (authProv.userData != null &&
+                authProv.userData!.type == 'admin') ...[
+                  AdminMenu()
+                ],
             if (authProv.userData != null &&
                 authProv.userData!.type == 'user') ...[
               const MenuContainer(),

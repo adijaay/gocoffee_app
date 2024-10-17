@@ -21,6 +21,8 @@ class AuthService with ChangeNotifier {
   String? typeUser;
   UserDataModel? userData;
 
+  List<UserDataModel> userDataList = [];
+
   /// handling register cause 201 and 409 have same key 'message'
   bool successRegis = false;
   bool isLogin = false;
@@ -60,6 +62,7 @@ class AuthService with ChangeNotifier {
       if (token.isNotEmpty) {
         final decodeType = JWT.decode(token);
         typeUser = decodeType.payload['type'];
+        printLog("type ${decodeType.payload['type']} ${decodeType.payload['userId']}");
       }
       notifyListeners();
     } catch (e) {
@@ -140,7 +143,7 @@ class AuthService with ChangeNotifier {
       );
       if (response.statusCode == 200) {
         userData = await UserDataModel.fromJson(response.data);
-        printLog('userdata: $userData');
+        printLog(userData!.toJson());
         notifyListeners();
       } else {
         printLog(
@@ -189,6 +192,53 @@ class AuthService with ChangeNotifier {
       if (response.statusCode == 201) {
         printLog(response.data);
         getUserData(id);
+        notifyListeners();
+      } else {
+        printLog('Gagal, code: ${response.data}');
+      }
+    } catch (e) {
+      printLog(e);
+    }
+  }
+
+  Future<void> getAllUsers({
+    required String token,
+    required Map<String, dynamic> data,
+    required Map<String, dynamic> params,
+  }) async {
+    try {
+      Response response = await apiService.postApi(
+        path: APIpath.getAllUser,
+        data: data, // Use the `data` parameter
+        params: params,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        printLog(response.data);
+        var data = response.data as List;
+        userDataList = data.map((e) => UserDataModel.fromJson(e)).toList();
+        notifyListeners();
+      } else {
+        printLog('Gagal, code: ${response.data}');
+      }
+    } catch (e) {
+      printLog(e);
+    }
+  }
+  Future<void> verifyUser({
+    required String token,
+    required Map<String, dynamic> data,
+    required Map<String, dynamic> params,
+  }) async {
+    try {
+      Response response = await apiService.postApi(
+        path: APIpath.verifyUser,
+        data: data, // Use the `data` parameter
+        params: params,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        printLog(response.data);
         notifyListeners();
       } else {
         printLog('Gagal, code: ${response.data}');

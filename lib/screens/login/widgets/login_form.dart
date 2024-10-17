@@ -123,7 +123,7 @@ class _LoginFormState extends State<LoginForm> {
                   login().then((value) {
                     getUserData().then((value) {
                       LoadingDialog.hide(context);
-                      if (provider.userData!.type.isNotEmpty) {
+                      if (provider.userData != null) {
                         Navigator.of(context).pushNamed('/');
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(

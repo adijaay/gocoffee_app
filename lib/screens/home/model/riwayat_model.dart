@@ -6,13 +6,14 @@ class HistoryModel {
   String addressDetail;
   double latitudeBuyer;
   double longitudeBuyer;
+  String? coffee_requested;
   String? doneAt;
   String status;
   int userId;
-  int merchantId;
+  int? merchantId;
   DateTime createdAt;
   DateTime updatedAt;
-  Merchant merchant;
+  Merchant? merchant;
   MerchantUser user;
 
   HistoryModel({
@@ -23,6 +24,7 @@ class HistoryModel {
     required this.addressDetail,
     required this.latitudeBuyer,
     required this.longitudeBuyer,
+    required this.coffee_requested,
     this.doneAt,
     required this.status,
     required this.userId,
@@ -42,13 +44,14 @@ class HistoryModel {
       addressDetail: json['address_detail'],
       latitudeBuyer: double.parse(json['latitude_buyer']),
       longitudeBuyer: double.parse(json['longitude_buyer']),
+      coffee_requested: json['coffee_requested'],
       doneAt: json['done_at'],
       status: json['status'],
       userId: json['userID'],
       merchantId: json['merchantID'],
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
-      merchant: Merchant.fromJson(json['Merchant']),
+      merchant: json['Merchant'] != null ? Merchant.fromJson(json['Merchant']) : null,
       user: MerchantUser.fromJson(json['User']),
     );
   }
@@ -62,13 +65,15 @@ class HistoryModel {
       'address_detail': addressDetail,
       'latitude_buyer': latitudeBuyer,
       'longitude_buyer': longitudeBuyer,
+      'coffee_requested': coffee_requested,
       'done_at': doneAt,
       'status': status,
       'userID': userId,
       'merchantID': merchantId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
-      'Merchant': merchant.toJson(),
+      'Merchant': merchant?.toJson(),
+      'User': user.toJson(),
     };
   }
 }

@@ -21,6 +21,10 @@ class OrderService with ChangeNotifier {
   OngoingResponse? ongoingResponse;
   late int orderRequestId;
 
+  bool ongoingFeedback = true;
+
+  List<OrderResponse> listOrderRequest = [];
+
   List<HistoryModel> historyOrder = [];
 
   double myLat = 0.0;
@@ -33,12 +37,33 @@ class OrderService with ChangeNotifier {
   List<int> coffeeID = [];
 
   Future<void> saveRequest({required String id}) async {
-    orderRequestId = int.parse(id);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('orderRequestId', orderRequestId);
     int idOrder = await prefs.getInt('orderRequestId')!;
     printLog('save id: $idOrder');
     notifyListeners();
+  }
+
+   Future<void> setListOrderRequested({required String token, required int idOrder}) async {
+    try {
+      printLog("setorderrequest");
+      printLog("getOrderRequested ID: $idOrder");
+      Response response = await apiService.getApi(
+          path: '${APIpath.getOrderById}/$idOrder',
+          headers: {'Authorization': 'Bearer $token'});
+
+      if (response.statusCode == 200) {
+        var data = OrderResponse.fromJson(response.data);
+        if (data.merchantId == null) {
+          listOrderRequest.add(data);
+        }
+        printLog(listOrderRequest);
+        notifyListeners();
+      }
+      notifyListeners();
+    } catch (e) {
+      printLog(e);
+    }
   }
 
   Future<void> resetOrderRequest() async {
@@ -63,6 +88,8 @@ class OrderService with ChangeNotifier {
         if (orderRequestResponse!.merchantId != null) {
           orderRequestResponse = null;
           await prefs.remove('orderRequestId');
+        } else {
+          listOrderRequest.add(orderRequestResponse!);
         }
         printLog(orderRequestResponse);
         notifyListeners();
@@ -139,6 +166,7 @@ class OrderService with ChangeNotifier {
     required String orderId,
   }) async {
     try {
+      ongoingFeedback = true;
       Response response = await apiService.postApi(
         path: '${APIpath.ongoingOrder}/$orderId',
         headers: {'Authorization': 'Bearer $token'},
@@ -146,9 +174,21 @@ class OrderService with ChangeNotifier {
       );
       if (response.statusCode == 200) {
         printLog(response.data);
+        notifyListeners();
       } else {
         printLog('Gagal, code: ${response.data}');
+        ongoingFeedback = false;
       }
+      for (var element in listOrderRequest) {
+        printLog('element.id: ${element.id}');
+        if (element.id == int.parse(orderId)) {
+          listOrderRequest.remove(element);
+          printLog('deleted: ${element.id}');
+          break;
+        }
+      }
+        printLog(listOrderRequest);
+        notifyListeners();
     } catch (e) {
       printLog(e);
     }
@@ -262,4 +302,50 @@ class OrderService with ChangeNotifier {
       printLog("error: $e");
     }
   }
+  Future<void> getAllOrder({
+    required String token
+  }) async {
+    try {
+      printLog("getAllOrder");
+      Response response = await apiService.getApi(
+        path: '${APIpath.getAllOrder}',
+        
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        printLog(response.data);
+        var data = response.data as List;
+        historyOrder = data.map((e) => HistoryModel.fromJson(e)).toList();
+        printLog('panjang list order: ${historyOrder.length}');
+        notifyListeners();
+      } else {
+        printLog('Gagal, code: ${response.data}');
+      }
+    } catch (e) {
+      printLog("error: $e");
+    }
+  }
+
+  Future<void> getAllUsers({
+  required String token,
+  required Map<String, dynamic> data,
+  required Map<String, dynamic> params,
+}) async {
+  try {
+    Response response = await apiService.postApi(
+      path: APIpath.getAllUser,
+      data: data, // Use the `data` parameter
+      params: params,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode == 200) {
+      notifyListeners();
+    } else {
+      printLog('Gagal, code: ${response.data}');
+    }
+  } catch (e) {
+    printLog(e);
+  }
+}
+
 }

@@ -6,3 +6,9 @@ String formatDateTime(String dateTimeString) {
       DateFormat('dd MMMM'); // Format to display day and month
   return dateFormat.format(dateTime);
 }
+
+String formatDate(DateTime dateString) {
+  String dateFormat =
+      DateFormat('dd MMMM').format(dateString); // Format to display day and month
+  return dateFormat;
+}

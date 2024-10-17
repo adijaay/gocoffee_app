@@ -12,12 +12,18 @@ class APIservice {
 
   Future<Response> postApi({
     required String path,
-    required Map<String, dynamic> data,
-    Map<String, dynamic>? headers,
+    required Map<String, dynamic> data, // Request body
+    Map<String, dynamic>? params, // Query parameters
+    Map<String, dynamic>? headers, // Additional headers
   }) async {
     try {
+      Uri uri = Uri.parse(path);
+      if (params != null) {
+        uri = uri.replace(queryParameters: params);
+      }
+
       Response response = await dio.post(
-        path,
+        uri.toString(),
         data: data,
         options: Options(headers: headers),
       );
@@ -36,6 +42,26 @@ class APIservice {
     try {
       Response response = await dio.get(
         path,
+        options: Options(headers: headers),
+      );
+      return response;
+    } on DioException catch (e) {
+      Response response = e.response!;
+      printLog(e);
+      return response;
+    }
+  }
+
+  Future<Response> getwithparamandbodyApi({
+    required String path,
+    required Map<String, dynamic> data,
+    Map<String, dynamic>? headers,
+  }) async {
+    try {
+      Response response = await dio.get(
+        path,
+        queryParameters: data,
+        data: data,
         options: Options(headers: headers),
       );
       return response;

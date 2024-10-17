@@ -37,11 +37,10 @@ class _WaitingAcceptState extends State<WaitingAccept> {
         token: userProv.token,
         orderId: widget.id!,
       );
-
       response.then((value) {
         if (mounted) {
           setState(() {
-            isAcceptedOrder = true;
+            isAcceptedOrder = false;
           });
         }
       });

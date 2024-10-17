@@ -30,18 +30,25 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
               onPressed: () {
                 LoadingDialog.show(context, message: 'Mengambil data...');
                 printLog('Refresh app bar');
-                if (authProv.typeUser == 'user') {
+                if (authProv.userData!.type == 'user') {
                   setState(() {
                     orderProv.getOrderByUser(
                       token: authProv.token,
                       userId: authProv.userData!.id.toString(),
                     );
                   });
-                } else {
+                } else if (authProv.userData!.type == 'merchant') {
                   setState(() {
                     orderProv.getOrderByMerchant(
                       token: authProv.token,
                       merchantId: authProv.userData!.merchId,
+                    );
+                  });
+                } else {
+                  printLog(authProv.typeUser);
+                  setState(() {
+                    orderProv.getAllOrder(
+                      token: authProv.token
                     );
                   });
                 }
@@ -53,21 +60,27 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
         ),
         body: RefreshIndicator(
           onRefresh: () async {
-            if (authProv.typeUser == 'user') {
+            if (authProv.userData!.type == 'user') {
               setState(() {
                 orderProv.getOrderByUser(
                   token: authProv.token,
                   userId: authProv.userData!.id.toString(),
                 );
               });
-            } else {
-              setState(() {
-                orderProv.getOrderByMerchant(
-                  token: authProv.token,
-                  merchantId: authProv.userData!.merchId,
-                );
-              });
-            }
+            } else if (authProv.userData!.type == 'merchant') {
+                  setState(() {
+                    orderProv.getOrderByMerchant(
+                      token: authProv.token,
+                      merchantId: authProv.userData!.merchId,
+                    );
+                  });
+                } else {
+                  setState(() {
+                    orderProv.getAllOrder(
+                      token: authProv.token
+                    );
+                  });
+                }
           },
           child: Column(
             children: [
@@ -86,13 +99,30 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                           printLog('Dari button tengah');
                           LoadingDialog.show(context,
                               message: 'Mengambil data...');
-                          setState(() {
-                            orderProv.getOrderByUser(
-                              token: authProv.token,
-                              userId: authProv.userData!.id.toString(),
-                            );
-                            LoadingDialog.hide(context);
-                          });
+                          if (authProv.typeUser == 'user') {
+                            setState(() {
+                              orderProv.getOrderByUser(
+                                token: authProv.token,
+                                userId: authProv.userData!.id.toString(),
+                              );
+                              LoadingDialog.hide(context);
+                            });
+                          } else if (authProv.typeUser == 'merchant') {
+                                setState(() {
+                                  orderProv.getOrderByMerchant(
+                                    token: authProv.token,
+                                    merchantId: authProv.userData!.merchId,
+                                  );
+                                LoadingDialog.hide(context);
+                                });
+                              } else {
+                                setState(() {
+                                  orderProv.getAllOrder(
+                                    token: authProv.token
+                                  );
+                                });
+                              LoadingDialog.hide(context);
+                              }
                         },
                       ),
                     ],
@@ -107,11 +137,12 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                       final data = orderProv.historyOrder[index];
                       return InkWell(
                         onTap: () => data.doneAt == null
-                            ? Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(builder: (context) {
-                                return WaitingAccept(id: data.id.toString());
-                              }))
-                            : _detailOrderDialog(data),
+                          ? (authProv.userData!.type == 'user'  ? Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(builder: (context) {
+                              return WaitingAccept(id: data.id.toString());
+                            })
+                          ) : null)
+                          : _detailOrderDialog(data),
                         child: Card(
                           elevation: 4.0,
                           margin: EdgeInsets.symmetric(
@@ -122,7 +153,7 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Penjual : Kopi ${data.merchant.user.name}',
+                                  '${authProv.userData!.type == 'user' ? data.merchant?.user.name == null ? 'Dalam Pencarian' : 'Penjual: ${data.merchant?.user.name}' : 'Pembeli: ${data.user.name}'}',
                                   style: TextStyle(
                                     fontSize: 18.0,
                                     fontWeight: FontWeight.bold,
@@ -146,13 +177,18 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                                             color: Colors.grey[800],
                                           ),
                                         )
-                                      : Text(
+                                      : authProv.userData!.type != 'admin' ? Text(
                                           'Dalam Proses',
                                           style: TextStyle(
                                             fontSize: 14.0,
                                             color: Colors.grey[800],
                                           ),
-                                        ),
+                                        ) : Text(
+                                          '${formatDate(data.createdAt)}',
+                                          style: TextStyle(
+                                            fontSize: 14.0,
+                                            color: Colors.grey[800],
+                                          )),
                                 ),
                               ],
                             ),
@@ -189,7 +225,7 @@ class _UserHistoryScreenState extends State<UserHistoryScreen> {
                 const SizedBox(height: 20),
                 const Divider(),
                 Text(
-                  'Penjual : Kopi ${data.merchant.user.name}',
+                  'Penjual : Kopi ${data.merchant?.user.name}',
                   style: TextStyle(fontSize: 18.0),
                 ),
                 const SizedBox(height: 10),

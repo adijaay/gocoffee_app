@@ -90,11 +90,16 @@ class _MerchMenuState extends State<MerchMenu> {
     final socketService = Provider.of<SocketServices>(context, listen: true);
 
     socketService.socket.connect();
+    merchProv.decrementCount();
     socketService.socket.on('${userProv.userId}-request-order', (data) {
       printLog('Socket mencari penjual..., $data');
       order = OrderResponse.fromJson(data);
       printLog("order ${order!.id}, count ${merchProv.count}");
       if (merchProv.count < 1) {
+        _orderService.setListOrderRequested(
+          token: userProv.token,
+          idOrder: order!.id,
+        );
         _showOrderDialog(context, order!, userProv);
         merchProv.incrementCount();
       }
@@ -148,6 +153,7 @@ class _MerchMenuState extends State<MerchMenu> {
                         child: const Text('Perbarui Informasi',
                             style: TextStyle(color: Colors.white)),
                         onPressed: () {
+                          // printLog("update token: ${userProv.token}");
                           showDialogMerch();
                         },
                       ),
@@ -155,31 +161,7 @@ class _MerchMenuState extends State<MerchMenu> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (_orderService.orderRequestResponse != null) ...[
-                  Text('Request Order :',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  Container(
-                      width: double.infinity,
-                      height: 100,
-                      child: Column(
-                        children: [
-                          ListTile(
-                            title: Text(
-                                '${_orderService.orderRequestResponse!.id}'),
-                            subtitle: Text(
-                                'Alamat: ${_orderService.orderRequestResponse!.address}'),
-                            onTap: () {
-                              _showOrderDialog(
-                                  context,
-                                  _orderService.orderRequestResponse!,
-                                  userProv);
-                              _orderService.resetOrderRequest();
-                              merchProv.decrementCount();
-                            },
-                          ),
-                        ],
-                      )),
-                ],
+                
                 Container(
                   height: 120.0, // Set the height of the carousel
                   margin: const EdgeInsets.symmetric(vertical: 20),
@@ -213,6 +195,54 @@ class _MerchMenuState extends State<MerchMenu> {
                     },
                   ),
                 ),
+                if (_orderService.listOrderRequest.length > 0) ...[
+                  Text('Request Order :',
+                      style: Theme.of(context).textTheme.titleLarge),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      padding: EdgeInsets.all(0),
+                      itemCount: _orderService.listOrderRequest.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text(
+                              '${_orderService.listOrderRequest[index].id}'),
+                          subtitle: Text(
+                              'Alamat: ${_orderService.listOrderRequest[index].address}'),
+                          onTap: () {
+                            _showOrderDialog(
+                                context,
+                                _orderService.listOrderRequest[index],
+                                userProv);
+                            _orderService.resetOrderRequest();
+                            merchProv.decrementCount();
+                          },
+                        );
+                      },
+                    )
+                  )
+                  // Container(
+                  //     width: double.infinity,
+                  //     height: 100,
+                  //     child: Column(
+                  //       children: [
+                  //         ListTile(
+                  //           title: Text(
+                  //               '${_orderService.orderRequestResponse!.id}'),
+                  //           subtitle: Text(
+                  //               'Alamat: ${_orderService.orderRequestResponse!.address}'),
+                  //           onTap: () {
+                  //             _showOrderDialog(
+                  //                 context,
+                  //                 _orderService.orderRequestResponse!,
+                  //                 userProv);
+                  //             _orderService.resetOrderRequest();
+                  //             merchProv.decrementCount();
+                  //           },
+                  //         ),
+                  //       ],
+                  //     )),
+                ],
                 Text('Ongoing Order :',
                     style: Theme.of(context).textTheme.titleLarge),
                 Container(
@@ -320,7 +350,7 @@ class _MerchMenuState extends State<MerchMenu> {
     OrderResponse order,
     AuthService userProv,
   ) {
-    if (!mounted) return;
+    // if (!mounted) return;
     final _orderService = context.read<OrderService>();
     final merchProv = context.read<MerchantService>();
 
@@ -460,6 +490,8 @@ class _MerchMenuState extends State<MerchMenu> {
                                     longitudeBuyer: order.longitudeBuyer,
                                     latitudeMerchant: lat,
                                     longitudeMerchant: long,
+                                    orderID: order.id,
+                                    merchantID: order.merchantId,
                                   )),
                               MyButton(
                                 child: Text(
@@ -469,8 +501,8 @@ class _MerchMenuState extends State<MerchMenu> {
                                       .titleLarge!
                                       .copyWith(color: Colors.white),
                                 ),
-                                onPressed: () {
-                                  _orderService.ongoingOrder(
+                                onPressed: () async {
+                                  await _orderService.ongoingOrder(
                                     token: userProv.token,
                                     merchantId:
                                         userProv.userData!.merchId.toString(),
@@ -479,13 +511,24 @@ class _MerchMenuState extends State<MerchMenu> {
                                   merchProv.decrementCount();
                                   Navigator.of(context)
                                       .popUntil((route) => route.isFirst);
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) {
-                                      return MerchOrder(
-                                        orderId: order.id.toString(),
-                                      );
-                                    },
-                                  ));
+                                  if(_orderService.ongoingFeedback){
+                                    printLog('order feedback: ${_orderService.ongoingFeedback}');
+                                    Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) {
+                                        return MerchOrder(
+                                          orderId: order.id.toString(),
+                                        );
+                                      },
+                                    ));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        duration: Duration(seconds: 2),
+                                        backgroundColor: Colors.red,
+                                        content: Text('Order sudah diambil!'),
+                                      ),
+                                    );
+                                  }
                                 },
                               ),
                             ],

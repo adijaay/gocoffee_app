@@ -38,6 +38,7 @@ class _MerchOrderState extends State<MerchOrder> {
   }
 
   @override
+
   void initState() {
     super.initState();
     _fetchOrderHistory();
@@ -87,7 +88,7 @@ class _MerchOrderState extends State<MerchOrder> {
           } else {
             final _orderService = context.watch<OrderService>();
             printLog(
-                "order service: ${_orderService.ongoingResponse!.address}");
+                "order service: ${_orderService.ongoingResponse?.address}");
             final order = _orderService.ongoingResponse;
 
             if (order == null) {
@@ -151,6 +152,8 @@ class _MerchOrderState extends State<MerchOrder> {
                       longitudeBuyer: order.longitudeBuyer,
                       latitudeMerchant: order.merchant.latitude,
                       longitudeMerchant: order.merchant.longitude,
+                      orderID: order.id,
+                      merchantID: order.merchant.id,
                     ),
                   ),
                   if (order.doneAt == null) ...[

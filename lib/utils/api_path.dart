@@ -26,4 +26,8 @@ class APIpath {
 
   static const String getCoffee = '/api/coffee';
   static const String deleteCoffee = '/api/merchant/deleteCoffee';
+  /// ADMIN
+  static const String getAllUser = '/api/admin/users';
+  static const String getAllOrder = '/api/admin/orders';
+  static const String verifyUser = '/api/admin/verifyuser';
 }

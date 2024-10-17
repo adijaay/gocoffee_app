@@ -40,13 +40,14 @@ class _IntroPageState extends State<IntroPage> {
                 orderProv.historyOrder.clear();
                 setDataUser().then(
                   (value) {
+                    printLog('data user: ${authProv.userData}');
                     if (authProv.token.isNotEmpty ||
-                        authProv.userData != null) {
+                        authProv.typeUser != null) {
                       printLog(
                           "data user: ${authProv.userData!.id.toString()}");
-                      authProv.updateUser(id: authProv.userData!.id.toString());
                       Navigator.pushReplacementNamed(context, '/home');
                     } else {
+                      authProv.logout();
                       Navigator.pushReplacementNamed(context, '/login');
                     }
                   },
